@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MyHomePage(title: 'Check your password'),
     );
   }
 }
@@ -50,10 +50,57 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
-  final DatabaseReference databseref = FirebaseDatabase.instance.reference().child("pathDemo");
+  var userPass = Map();
+  var snap = Map();
+  String _show = "User not logged";
+  final userController = TextEditingController();
+  final passController = TextEditingController();
+  final databaseReference = FirebaseDatabase.instance.reference();
+  // final DatabaseReference databseref = FirebaseDatabase.instance.reference().child("pathDemo");
+  @override
+  void initState() {
+    _getData();
+     
+  }
 
   void _sendData(count){
-    databseref.push().set({"first name": "Dulan", "count": count});
+    // databseref.push().set({"first name": "Dulan", "count": count});
+    databaseReference.child("1").set({"first name": "Dulan", "count": count});
+  }
+
+  void _getData(){
+    databaseReference.child("1").once().then((DataSnapshot snapshot) {
+    _counter = snapshot.value['count'];
+  });
+  _update();
+  }
+
+  void _update(){
+    setState((){
+      });
+  }
+  bool auth(username, password){
+        databaseReference.child("users").once().then((DataSnapshot snapshot) {
+      userPass = snapshot.value;
+      });
+    print(username + "--" + password);
+    if (userPass.containsKey(username)){
+        if(userPass[username] == password){
+          print("Authorized");
+          _show = "Authorized";
+          return true;
+        }else{
+          print("Access Denined");
+          _show = "Access Denined";
+          return false;
+        }
+    }else{
+      print("User not registered");
+      _show = "User not registered";
+      return false;
+    }
+    
+   
   }
 
   void _incrementCounter() {
@@ -104,6 +151,27 @@ class _MyHomePageState extends State<MyHomePage> {
               '$_counter',
               style: Theme.of(context).textTheme.display1,
             ),
+            Text(
+              '$_show',
+              style: Theme.of(context).textTheme.display1,
+            ),
+            TextFormField(
+            controller: userController,
+            decoration: InputDecoration(labelText: 'User Name'),
+          ),
+          TextFormField(
+            controller: passController,
+            decoration: InputDecoration(labelText: 'Password'),
+          ),
+            RaisedButton.icon(
+            onPressed: () {
+              auth(userController.text, passController.text);
+              _update();
+            },
+            icon: Icon(Icons.mail),
+            label: Text("Request", style: TextStyle(fontSize: 15)),
+            color: Color.fromRGBO(250, 30, 50, 0.6),
+          ),
           ],
         ),
       ),
